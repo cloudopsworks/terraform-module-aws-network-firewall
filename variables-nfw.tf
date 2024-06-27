@@ -12,11 +12,11 @@ variable "create" {
 variable "logging" {
   type = object({
     enabled        = optional(bool, false)
-    configurations = optional(any, [])
+    additional_configuration = optional(any, {})
   })
   default = {
     enabled        = false
-    configurations = []
+    additional_configuration = {}
   }
 }
 
