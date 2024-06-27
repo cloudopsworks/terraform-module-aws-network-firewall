@@ -5,7 +5,7 @@
 #
 
 locals {
-  subnet_mapping = [
+  subnet_mappings = [
     for sub in var.subnet_ids : {
       subnet_id       = sub
       ip_address_type = "IPV4"
@@ -40,7 +40,7 @@ module "nfw" {
   policy_stateless_rule_group_reference     = var.policy.stateless.rule_group_reference
   policy_tags                               = local.all_tags
   vpc_id                                    = var.vpc_id
-  subnet_mapping                            = var.subnet_mapping
+  subnet_mapping                            = length(local.subnet_mappings) > 0 ? local.subnet_mappings : var.subnet_mapping
   tags                                      = local.all_tags
 }
 
