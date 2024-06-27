@@ -65,8 +65,8 @@ variable "policy" {
     }
     stateless = {
       custom_action            = {}
-      default_actions          = []
-      fragment_default_actions = []
+      default_actions          = ["aws:pass"]
+      fragment_default_actions = ["aws:drop"]
       rule_group_reference     = {}
     }
   }
@@ -81,15 +81,17 @@ variable "vpc_id" {
   type = string
 }
 
-variable "subnet_mapping" {
-  type = list(object({
-    subnet_id       = string
-    ip_address_type = optional(string, null)
-  }))
-  default = []
-}
-
 variable "subnet_ids" {
   type    = list(string)
   default = []
+}
+
+variable "firewall_policy_change_protection" {
+  type    = bool
+  default = true
+}
+
+variable "subnet_change_protection" {
+  type    = bool
+  default = true
 }
