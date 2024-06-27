@@ -88,3 +88,8 @@ variable "subnet_mapping" {
   }))
   default = []
 }
+
+variable "subnet_ids" {
+  type    = list(string)
+  default = []
+}

@@ -4,6 +4,15 @@
 #            Distributed Under Apache v2.0 License
 #
 
+locals {
+  subnet_mapping = [
+    for sub in var.subnet_ids : {
+      subnet_id       = sub
+      ip_address_type = "IPV4"
+    }
+  ]
+}
+
 module "nfw" {
   source                                   = "terraform-aws-modules/network-firewall/aws"
   version                                  = "~> 1.0"
