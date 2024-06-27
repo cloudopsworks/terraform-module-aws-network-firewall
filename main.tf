@@ -11,13 +11,15 @@ locals {
       ip_address_type = "IPV4"
     }
   }
-  logging_config = var.logging.enabled ? {
-    log_destination = {
-      logGroup = aws_cloudwatch_log_group.logs[0].name
+  logging_config = var.logging.enabled ? [
+    {
+      log_destination = {
+        logGroup = aws_cloudwatch_log_group.logs[0].name
+      }
+      log_destination_type = "CloudWatchLogs"
+      log_type             = "ALERT"
     }
-    log_destination_type = "CloudWatchLogs"
-    log_type             = "ALERT"
-  } : null
+  ] : []
 }
 
 resource "aws_cloudwatch_log_group" "logs" {
@@ -33,7 +35,7 @@ module "nfw" {
   name                                     = "nfw-${local.system_name}"
   create                                   = var.create
   create_logging_configuration             = var.logging.enabled
-  logging_configuration_destination_config = merge(local.logging_config, var.logging.additional_configuration)
+  logging_configuration_destination_config = coalesce(concat(local.logging_config, [var.logging.additional_configuration]))
   create_policy                            = var.create_policy
   create_policy_resource_policy            = var.create_policy_resource_policy
   delete_protection                        = var.delete_protection
