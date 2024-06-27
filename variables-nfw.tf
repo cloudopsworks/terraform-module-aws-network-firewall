@@ -11,11 +11,11 @@ variable "create" {
 
 variable "logging" {
   type = object({
-    enabled        = optional(bool, false)
+    enabled                  = optional(bool, false)
     additional_configuration = optional(any, {})
   })
   default = {
-    enabled        = false
+    enabled                  = false
     additional_configuration = {}
   }
 }
@@ -42,15 +42,13 @@ variable "policy" {
       policy_principals = optional(list(string), [])
     })
     stateful = object({
-      default_actions      = optional(list(string), [])
-      engine_options       = optional(any, {})
-      rule_group_reference = optional(any, {})
+      default_actions = optional(list(string), [])
+      engine_options  = optional(any, {})
     })
     stateless = object({
       custom_action            = optional(any, {})
       default_actions          = optional(list(string), [])
       fragment_default_actions = optional(list(string), [])
-      rule_group_reference     = optional(any, {})
     })
   })
   default = {
@@ -59,15 +57,13 @@ variable "policy" {
       policy_principals = []
     }
     stateful = {
-      default_actions      = []
-      engine_options       = {}
-      rule_group_reference = {}
+      default_actions = []
+      engine_options  = {}
     }
     stateless = {
       custom_action            = {}
       default_actions          = ["aws:pass"]
       fragment_default_actions = ["aws:drop"]
-      rule_group_reference     = {}
     }
   }
 }
@@ -94,4 +90,14 @@ variable "firewall_policy_change_protection" {
 variable "subnet_change_protection" {
   type    = bool
   default = true
+}
+
+variable "stateful_rule_groups" {
+  type    = any
+  default = {}
+}
+
+variable "stateless_rule_groups" {
+  type    = any
+  default = {}
 }
