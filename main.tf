@@ -35,7 +35,7 @@ module "nfw" {
   name                                     = "nfw-${local.system_name}"
   create                                   = var.create
   create_logging_configuration             = var.logging.enabled
-  logging_configuration_destination_config = coalesce(concat(local.logging_config, [var.logging.additional_configuration]))
+  logging_configuration_destination_config = coalescelist(concat(local.logging_config, [var.logging.additional_configuration]))
   create_policy                            = var.create_policy
   create_policy_resource_policy            = var.create_policy_resource_policy
   delete_protection                        = var.delete_protection
