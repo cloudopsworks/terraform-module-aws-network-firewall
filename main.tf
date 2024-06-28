@@ -26,12 +26,12 @@ locals {
   logging_config = coalescelist(concat(local.default_logging_config, local.extra_logging_config))
 
   route_associations = merge([
-    for subnet in data.aws_subnet.route_subnet : {
-      for state in module.nfw.status[0].sync_states : "${subnet.id}-${state.availability_zone}" => {
-        route_table_id   =
+    for ids in var.route_table_ids : {
+      for state in module.nfw.status[0].sync_states : "${ids}-${state.availability_zone}" => {
+        route_table_id   = data.aws_route_table.tgw_route_table[ids].id
         destination_cidr = var.nfw_destination_cidr
         vpc_endpoint_id  = state.attachment[0].endpoint_id
-      } if subnet.availability_zone == state.availability_zone
+      } if data.aws_subnet.tgw_subnets[ids].availability_zone == state.availability_zone
     }
   ]...)
 }
@@ -140,14 +140,14 @@ module "network_firewall_rule_group_stateless" {
   tags                       = local.all_tags
 }
 
-data "aws_subnet" "route_subnet" {
-  for_each = toset(var.subnet_ids)
-  id       = each.value
+data "aws_subnet" "tgw_subnets" {
+  for_each = toset(var.route_table_ids)
+  id       = data.aws_route_table.tgw_route_table[each.key].associations[0].subnet_id
 }
 
-data "aws_route" "tgw_route" {
-  for_each               = var.route_table_ids
-  route_table_id         = each.value
+data "aws_route_table" "tgw_route_table" {
+  for_each       = toset(var.route_table_ids)
+  route_table_id = each.value
 }
 
 resource "aws_route" "nfw_route" {
