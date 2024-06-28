@@ -53,7 +53,7 @@ module "nfw" {
   policy_stateful_rule_group_reference = {
     for k, v in var.stateful_rule_groups :
     k => {
-      rule_group_arn = module.network_firewall_rule_group_stateful[k].rule_group_arn
+      rule_group_arn = module.network_firewall_rule_group_stateful[k].arn
       priority       = v.priority
     }
   }
@@ -63,7 +63,7 @@ module "nfw" {
   policy_stateless_rule_group_reference = {
     for k, v in var.stateless_rule_groups :
     k => {
-      rule_group_arn = module.network_firewall_rule_group_stateless[k].rule_group_arn
+      rule_group_arn = module.network_firewall_rule_group_stateless[k].arn
       priority       = v.priority
     }
   }
