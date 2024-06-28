@@ -31,7 +31,7 @@ locals {
         route_table_id   = sub
         destination_cidr = var.nfw_destination_cidr
         vpc_endpoint_id  = state.attachment[0].endpoint_id
-      } if data.aws_subnet.route_subnet.availability_zone == state.availability_zone
+      } if data.aws_subnet.route_subnet["${sub}"].availability_zone == state.availability_zone
     }
   ]...)
 }
