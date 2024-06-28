@@ -26,12 +26,12 @@ locals {
   logging_config = coalescelist(concat(local.default_logging_config, local.extra_logging_config))
 
   route_associations = merge([
-    for sub in var.route_table_ids : {
-      for state in module.nfw.status[0].sync_states : "${sub}-${state.availability_zone}" => {
+    for subnet in data.aws_subnet.route_subnet : {
+      for state in module.nfw.status[0].sync_states : "${subnet.id}-${state.availability_zone}" => {
         route_table_id   = sub
         destination_cidr = var.nfw_destination_cidr
         vpc_endpoint_id  = state.attachment[0].endpoint_id
-      } if data.aws_subnet.route_subnet["${sub}"].availability_zone == state.availability_zone
+      } if subnet.availability_zone == state.availability_zone
     }
   ]...)
 }
