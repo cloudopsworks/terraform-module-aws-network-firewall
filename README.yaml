@@ -11,7 +11,7 @@ copyrights:
 github_repo: cloudopsworks/terraform-module-aws-vpc-setup
 
 description: |-
-  VPC Module for setting up transit gateway with ResourceAccessMananger support.
+  VPC Module for setting up Network Firewall into a inspection network.
 
 # Introduction to the project
 #introduction: |-
