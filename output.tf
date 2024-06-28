@@ -48,7 +48,7 @@ output "firewall_kms_key_alias" {
 
 output "nfw_rule_groups_stateful" {
   value = {
-    for k, v in module.network_firewall_rule_group_stateful.rule_groups : k => {
+    for k, v in module.network_firewall_rule_group_stateful : k => {
       arn          = v.arn
       id           = v.id
       update_token = v.update_token
@@ -58,7 +58,7 @@ output "nfw_rule_groups_stateful" {
 
 output "nfw_rule_groups_stateless" {
   value = {
-    for k, v in module.network_firewall_rule_group_stateless.rule_groups : k => {
+    for k, v in module.network_firewall_rule_group_stateless : k => {
       arn          = v.arn
       id           = v.id
       update_token = v.update_token
