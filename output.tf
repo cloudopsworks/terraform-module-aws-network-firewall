@@ -12,10 +12,6 @@ output "firewall_arn" {
   value = module.nfw.arn
 }
 
-output "firewall_id" {
-  value = module.nfw.id
-}
-
 output "policy_arn" {
   value = module.nfw.policy_arn
 }
@@ -50,7 +46,6 @@ output "nfw_rule_groups_stateful" {
   value = {
     for k, v in module.network_firewall_rule_group_stateful : k => {
       arn          = v.arn
-      id           = v.id
       update_token = v.update_token
     }
   }
@@ -60,7 +55,6 @@ output "nfw_rule_groups_stateless" {
   value = {
     for k, v in module.network_firewall_rule_group_stateless : k => {
       arn          = v.arn
-      id           = v.id
       update_token = v.update_token
     }
   }
