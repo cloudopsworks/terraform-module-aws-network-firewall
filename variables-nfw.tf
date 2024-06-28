@@ -82,6 +82,16 @@ variable "subnet_ids" {
   default = []
 }
 
+variable "route_table_ids" {
+  type    = list(string)
+  default = []
+}
+
+variable "nfw_destination_cidr" {
+  type    = string
+  default = "0.0.0.0/0"
+}
+
 variable "firewall_policy_change_protection" {
   type    = bool
   default = true

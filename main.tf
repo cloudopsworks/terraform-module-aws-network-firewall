@@ -24,6 +24,16 @@ locals {
     var.logging.additional_configuration
   ] : []
   logging_config = coalescelist(concat(local.default_logging_config, local.extra_logging_config))
+
+  route_associations = merge([
+    for sub in var.route_table_ids : {
+      for vpce in module.nfw.status.sync_states.attachment : "${sub}-${vpce.endpoint_id}" => {
+        route_table_id   = sub
+        destination_cidr = var.nfw_destination_cidr
+        vpc_endpoint_id  = vpce.vpc_endpoint_id
+      } if data.aws_subnet.route_subnet[sub].availability_zone == vpce.availability_zone
+    }
+  ]...)
 }
 
 resource "aws_cloudwatch_log_group" "logs" {
@@ -128,4 +138,16 @@ module "network_firewall_rule_group_stateless" {
   attach_resource_policy     = true
   resource_policy_principals = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
   tags                       = local.all_tags
+}
+
+data "aws_subnet" "route_subnet" {
+  for_each = toset(var.subnet_ids)
+  id       = each.value
+}
+
+resource "aws_route" "nfw_route" {
+  for_each               = local.route_associations
+  route_table_id         = each.value.route_table_id
+  destination_cidr_block = each.value.destination_cidr
+  vpc_endpoint_id        = each.value.vpc_endpoint_id
 }
