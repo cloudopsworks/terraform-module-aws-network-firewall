@@ -51,20 +51,20 @@ module "nfw" {
   policy_stateful_default_actions   = var.policy.stateful.default_actions
   policy_stateful_engine_options    = var.policy.stateful.engine_options
   policy_stateful_rule_group_reference = {
-    for item in var.stateful_rule_groups :
-    item.key => {
-      rule_group_arn = module.network_firewall_rule_group_stateful[item.key].rule_group_arn
-      priority       = item.value.priority
+    for k, v in var.stateful_rule_groups :
+    k => {
+      rule_group_arn = module.network_firewall_rule_group_stateful[k].rule_group_arn
+      priority       = v.priority
     }
   }
   policy_stateless_custom_action            = var.policy.stateless.custom_action
   policy_stateless_default_actions          = var.policy.stateless.default_actions
   policy_stateless_fragment_default_actions = var.policy.stateless.fragment_default_actions
   policy_stateless_rule_group_reference = {
-    for item in var.stateless_rule_groups :
-    item.key => {
-      rule_group_arn = module.network_firewall_rule_group_stateless[item.key].rule_group_arn
-      priority       = item.value.priority
+    for k, v in var.stateless_rule_groups :
+    k => {
+      rule_group_arn = module.network_firewall_rule_group_stateless[k].rule_group_arn
+      priority       = v.priority
     }
   }
   firewall_policy_change_protection = var.firewall_policy_change_protection
