@@ -58,7 +58,6 @@ module "nfw" {
     for k, v in var.stateful_rule_groups :
     k => {
       resource_arn = module.network_firewall_rule_group_stateful[k].arn
-      priority     = v.priority
     }
   }
   policy_stateless_custom_action            = var.policy.stateless.custom_action
