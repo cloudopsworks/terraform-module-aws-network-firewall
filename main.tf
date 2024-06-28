@@ -11,7 +11,7 @@ locals {
       ip_address_type = "IPV4"
     }
   }
-  logging_config = var.logging.enabled ? [
+  default_logging_config = var.logging.enabled ? [
     {
       log_destination = {
         logGroup = aws_cloudwatch_log_group.logs[0].name
@@ -20,6 +20,10 @@ locals {
       log_type             = "ALERT"
     }
   ] : []
+  extra_logging_config = var.logging.enabled && length(var.logging.additional_configuration) > 0 ? [
+    var.logging.additional_configuration
+  ] : []
+  logging_config = coalescelist(concat(local.default_logging_config, local.extra_logging_config))
 }
 
 resource "aws_cloudwatch_log_group" "logs" {
@@ -54,7 +58,7 @@ module "nfw" {
     for k, v in var.stateful_rule_groups :
     k => {
       resource_arn = module.network_firewall_rule_group_stateful[k].arn
-      priority       = v.priority
+      priority     = v.priority
     }
   }
   policy_stateless_custom_action            = var.policy.stateless.custom_action
@@ -64,7 +68,7 @@ module "nfw" {
     for k, v in var.stateless_rule_groups :
     k => {
       resource_arn = module.network_firewall_rule_group_stateless[k].arn
-      priority       = v.priority
+      priority     = v.priority
     }
   }
   firewall_policy_change_protection = var.firewall_policy_change_protection
