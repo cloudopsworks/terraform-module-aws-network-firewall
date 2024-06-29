@@ -46,7 +46,7 @@ module "nfw" {
   firewall_policy_arn                      = var.firewall_policy_arn
   policy_encryption_configuration = {
     key_id = aws_kms_key.this.key_id
-    type   = "AWS_OWNED_KMS_KEY"
+    type   = "CUSTOMER_KMS"
   }
   policy_name                       = "nfw-pol-${local.system_name}"
   policy_description                = "Network Firewall Policy - nfw-pol-${local.system_name}"
