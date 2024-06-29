@@ -44,6 +44,10 @@ module "nfw" {
   create_policy_resource_policy            = var.create_policy_resource_policy
   delete_protection                        = var.delete_protection
   firewall_policy_arn                      = var.firewall_policy_arn
+  encryption_configuration= {
+    key_id = aws_kms_key.this.key_id
+    type   = "CUSTOMER_KMS"
+  }
   policy_encryption_configuration = {
     key_id = aws_kms_key.this.key_id
     type   = "CUSTOMER_KMS"
