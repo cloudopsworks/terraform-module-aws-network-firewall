@@ -24,16 +24,6 @@ locals {
     var.logging.additional_configuration
   ] : []
   logging_config = coalescelist(concat(local.default_logging_config, local.extra_logging_config))
-
-  route_associations = merge([
-    for ids in var.route_table_ids : {
-      for state in module.nfw.status[0].sync_states : "${ids}-${state.availability_zone}" => {
-        route_table_id   = data.aws_route_table.tgw_route_table[ids].id
-        destination_cidr = var.nfw_destination_cidr
-        vpc_endpoint_id  = state.attachment[0].endpoint_id
-      } if data.aws_subnet.tgw_subnets[ids].availability_zone == state.availability_zone
-    }
-  ]...)
 }
 
 resource "aws_cloudwatch_log_group" "logs" {
@@ -140,18 +130,37 @@ module "network_firewall_rule_group_stateless" {
   tags                       = local.all_tags
 }
 
-data "aws_subnet" "tgw_subnets" {
-  for_each = toset(var.route_table_ids)
-  id       = data.aws_route_table.tgw_route_table[each.key].associations[0].subnet_id
+data "aws_subnet" "endpoint_subnets" {
+  for_each = toset(var.endpoint_subnet_ids)
+  id       = each.value
 }
 
-data "aws_route_table" "tgw_route_table" {
-  for_each       = toset(var.route_table_ids)
-  route_table_id = each.value
+data "aws_route_table" "endpoint_route_table" {
+  for_each  = toset(var.endpoint_subnet_ids)
+  subnet_id = data.aws_subnet.endpoint_subnets[each.key].id
 }
 
-resource "aws_route" "nfw_route" {
-  for_each               = local.route_associations
+
+# route_associations = merge([
+#   for ids in var.route_table_ids : {
+#     for state in module.nfw.status[0].sync_states : "${ids}-${state.availability_zone}" => {
+#       route_table_id   = data.aws_route_table.tgw_route_table[ids].id
+#       destination_cidr = var.nfw_destination_cidr
+#       vpc_endpoint_id  = state.attachment[0].endpoint_id
+#     } if data.aws_subnet.tgw_subnets[ids].availability_zone == state.availability_zone
+#   }
+# ]...)
+
+resource "aws_route" "endpoint_route" {
+  for_each = merge([
+    for ids in var.endpoint_subnet_ids : {
+      for state in module.nfw.status[0].sync_states : (ids) => {
+        route_table_id   = data.aws_route_table.endpoint_route_table[ids].id
+        destination_cidr = var.endpoint_destination_cidr
+        vpc_endpoint_id  = state.attachment[0].endpoint_id
+      } if data.aws_subnet.endpoint_subnets[ids].availability_zone == state.availability_zone
+    }
+  ]...)
   route_table_id         = each.value.route_table_id
   destination_cidr_block = each.value.destination_cidr
   vpc_endpoint_id        = each.value.vpc_endpoint_id

@@ -82,12 +82,12 @@ variable "subnet_ids" {
   default = []
 }
 
-variable "route_table_ids" {
+variable "endpoint_subnet_ids" {
   type    = list(string)
   default = []
 }
 
-variable "nfw_destination_cidr" {
+variable "endpoint_destination_cidr" {
   type    = string
   default = "0.0.0.0/0"
 }
