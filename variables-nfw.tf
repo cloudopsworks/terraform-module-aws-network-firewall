@@ -82,16 +82,6 @@ variable "subnet_ids" {
   default = []
 }
 
-variable "endpoint_subnet_ids" {
-  type    = list(string)
-  default = []
-}
-
-variable "endpoint_destination_cidr" {
-  type    = string
-  default = "0.0.0.0/0"
-}
-
 variable "firewall_policy_change_protection" {
   type    = bool
   default = true
