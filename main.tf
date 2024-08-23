@@ -28,8 +28,8 @@ locals {
 
 resource "aws_cloudwatch_log_group" "logs" {
   count             = var.logging.enabled ? 1 : 0
-  name              = "nfw-logs-${local.system_name}"
-  retention_in_days = 7
+  name              = "nfw-${local.system_name}-logs"
+  retention_in_days = var.nfw_logging_retention
   tags              = local.all_tags
 }
 
@@ -52,8 +52,8 @@ module "nfw" {
     key_id = aws_kms_key.this.arn
     type   = "CUSTOMER_KMS"
   }
-  policy_name                       = "nfw-pol-${local.system_name}"
-  policy_description                = "Network Firewall Policy - nfw-pol-${local.system_name}"
+  policy_name                       = "nfw-${local.system_name}-pol"
+  policy_description                = "Network Firewall Policy - nfw-${local.system_name}-pol"
   policy_resource_policy_actions    = var.policy.resource.policy_actions
   policy_resource_policy_principals = var.policy.resource.policy_principals
   policy_stateful_default_actions   = var.policy.stateful.default_actions
@@ -95,7 +95,7 @@ resource "aws_kms_key" "this" {
 }
 
 resource "aws_kms_alias" "this" {
-  name          = "alias/nfw-kms-${local.system_name}"
+  name          = "alias/nfw-${local.system_name}-kms"
   target_key_id = aws_kms_key.this.key_id
 }
 
@@ -104,8 +104,8 @@ module "network_firewall_rule_group_stateful" {
   for_each    = var.stateful_rule_groups
   source      = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
   version     = "~> 1.0"
-  name        = "nfw-sf-${each.key}-${local.system_name}"
-  description = "Network Firewall Stateful Rule Group - nfw-sf-${each.key}-${local.system_name}"
+  name        = "nfw-${local.system_name}-${each.key}-sf"
+  description = "Network Firewall Stateful Rule Group - nfw-${local.system_name}-${each.key}-sf"
   type        = "STATEFUL"
   capacity    = 100
   rule_group  = each.value.rule_group
@@ -120,8 +120,8 @@ module "network_firewall_rule_group_stateless" {
   for_each    = var.stateless_rule_groups
   source      = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
   version     = "~> 1.0"
-  name        = "nfw-sl-${each.key}-${local.system_name}"
-  description = "Network Firewall Stateless Rule Group - nfw-sl-${each.key}-${local.system_name}"
+  name        = "nfw-${local.system_name}-${each.key}-sl"
+  description = "Network Firewall Stateless Rule Group - nfw-${local.system_name}-${each.key}-sl"
   capacity    = 100
   type        = "STATELESS"
 

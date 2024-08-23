@@ -101,3 +101,9 @@ variable "stateless_rule_groups" {
   type    = any
   default = {}
 }
+
+variable "nfw_logging_retention" {
+  description = "The number of days to retain log events"
+    type    = number
+    default = 30
+}
