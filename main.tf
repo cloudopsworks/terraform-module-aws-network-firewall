@@ -104,8 +104,8 @@ module "network_firewall_rule_group_stateful" {
   for_each    = var.stateful_rule_groups
   source      = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
   version     = "~> 1.0"
-  name        = "nfw-${local.system_name}-${each.key}-sf"
-  description = "Network Firewall Stateful Rule Group - nfw-${local.system_name}-${each.key}-sf"
+  name        = "nfw-${local.system_name_short}-${each.key}-sf"
+  description = "Network Firewall Stateful Rule Group - nfw-${local.system_name_short}-${each.key}-sf, System: ${local.system_name}"
   type        = "STATEFUL"
   capacity    = 100
   rule_group  = each.value.rule_group
@@ -120,8 +120,8 @@ module "network_firewall_rule_group_stateless" {
   for_each    = var.stateless_rule_groups
   source      = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
   version     = "~> 1.0"
-  name        = "nfw-${local.system_name}-${each.key}-sl"
-  description = "Network Firewall Stateless Rule Group - nfw-${local.system_name}-${each.key}-sl"
+  name        = "nfw-${local.system_name_short}-${each.key}-sl"
+  description = "Network Firewall Stateless Rule Group - nfw-${local.system_name_short}-${each.key}-sl, System: ${local.system_name}"
   capacity    = 100
   type        = "STATELESS"
 
