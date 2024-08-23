@@ -29,7 +29,7 @@ locals {
 resource "aws_cloudwatch_log_group" "logs" {
   count             = var.logging.enabled ? 1 : 0
   name              = "nfw-${local.system_name}-logs"
-  retention_in_days = var.nfw_logging_retention
+  retention_in_days = try(var.logging.retention_days, 14)
   tags              = local.all_tags
 }
 
