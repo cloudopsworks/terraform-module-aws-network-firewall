@@ -34,7 +34,8 @@ resource "aws_cloudwatch_log_group" "logs" {
 }
 
 module "nfw" {
-  source                                   = "github.com/cloudopsworks/terraform-aws-network-firewall//?ref=master"
+  source                                   = "terraform-aws-modules/network-firewall/aws"
+  version                                  = "~> 1.0"
   name                                     = "nfw-${local.system_name}"
   create                                   = var.create
   create_logging_configuration             = var.logging.enabled
@@ -101,7 +102,8 @@ resource "aws_kms_alias" "this" {
 # Firewall rule groups
 module "network_firewall_rule_group_stateful" {
   for_each    = var.stateful_rule_groups
-  source      = "github.com/cloudopsworks/terraform-aws-network-firewall//modules/rule-group?ref=master"
+  source      = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
+  version     = "~> 1.0"
   name        = "nfw-${local.system_name_short}-${each.key}-sf"
   description = "Network Firewall Stateful Rule Group - nfw-${local.system_name_short}-${each.key}-sf, System: ${local.system_name}"
   type        = "STATEFUL"
@@ -116,7 +118,8 @@ module "network_firewall_rule_group_stateful" {
 
 module "network_firewall_rule_group_stateless" {
   for_each    = var.stateless_rule_groups
-  source      = "github.com/cloudopsworks/terraform-aws-network-firewall//modules/rule-group?ref=master"
+  source      = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
+  version     = "~> 1.0"
   name        = "nfw-${local.system_name_short}-${each.key}-sl"
   description = "Network Firewall Stateless Rule Group - nfw-${local.system_name_short}-${each.key}-sl, System: ${local.system_name}"
   capacity    = 100
