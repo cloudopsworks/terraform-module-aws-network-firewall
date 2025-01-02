@@ -34,8 +34,8 @@ resource "aws_cloudwatch_log_group" "logs" {
 }
 
 module "nfw" {
-  source                                   = "terraform-aws-modules/network-firewall/aws"
-  version                                  = "~> 1.0"
+  #version                                  = "~> 1.0"
+  source                                   = "github.com/cloudopsworks/terraform-aws-network-firewall//?ref=master"
   name                                     = "nfw-${local.system_name}"
   create                                   = var.create
   create_logging_configuration             = var.logging.enabled
