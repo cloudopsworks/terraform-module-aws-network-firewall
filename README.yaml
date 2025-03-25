@@ -8,10 +8,17 @@ copyrights:
     url: "https://cloudops.works"
     year: "2024"
 
-github_repo: cloudopsworks/terraform-module-aws-vpc-setup
+github_repo: cloudopsworks/terraform-module-aws-network-firewall
 
 description: |-
-  VPC Module for setting up Network Firewall into a inspection network.
+  This Terraform module sets up an AWS Network Firewall within a VPC. It includes the following features:
+  - Creation of CloudWatch Log Groups for logging firewall events.
+  - Configuration of logging destinations and types based on user input.
+  - Creation and management of KMS keys for encryption.
+  - Support for both stateful and stateless firewall rule groups.
+  - Flexible configuration options for firewall policies, including default actions, custom actions, and rule group references.
+  - Protection options for firewall policy changes and subnet changes.
+  - Tagging support for all resources created by the module.
 
 # Introduction to the project
 #introduction: |-
