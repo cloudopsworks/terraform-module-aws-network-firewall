@@ -26,7 +26,7 @@ variables:
     order: 2
     description: "VPC Dependency"
     type: bool
-    default: false
+    default: true
     confirm: true
   - name: vpc_path
     order: 3

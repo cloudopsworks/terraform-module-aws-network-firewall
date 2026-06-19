@@ -63,11 +63,12 @@ inputs = {
   spoke_def  = local.spoke_vars.spoke
   {{- range .requiredVariables }}
   {{- if ne .Name "org" }}
-  {{ .Name }} = local.local_vars.{{ .Name }}
-  {{- else if and $.vpc_dependency (eq .Name "vpc_id") }}
+  {{- if and $.vpc_dependency (eq .Name "vpc_id") }}
   {{ .Name }} = dependency.vpc.outputs.vpc_id
   {{- else if and $.vpc_dependency (eq .Name "subnet_ids") }}
-  {{ .Name }} = dependency.vpc.outputs.{{$.vpc_subnet_type}}_subnets
+  {{ .Name }} = dependency.vpc.outputs.{{ $.vpc_subnet_tier }}_subnets
+  {{- else }}
+  {{ .Name }} = local.local_vars.{{ .Name }}
   {{- end }}
   {{- end }}
   {{- end }}
