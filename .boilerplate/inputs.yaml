@@ -1,18 +1,80 @@
 # Module configuration
-# Required variables
-{{- range .requiredVariables }}
-{{- if ne .Name "org"}}
-# Description {{ .Description }} , Type: {{ .Type }}
-{{ .Name }}: {{ .DefaultValuePlaceholder }}
-{{- end }}
+# AWS Network Firewall module inputs.
+# Fill in the required values and review optional defaults before applying.
 
-{{- end }}
-# Optional variables
-{{- range .optionalVariables }}
-{{- if ne .Name "is_hub" "spoke_def" "extra_args" }}
-# Description {{ .Description }} , Type: {{ .Type }}
-#{{ .Name }}: {{ .DefaultValue }}
-{{- end }}
+create: true  # (Optional) Whether to create the Network Firewall and all associated resources. Default: true
 
-{{- end }}
+create_policy: true  # (Optional) Whether to create a new managed firewall policy. Set to false to use firewall_policy_arn instead. Default: true
 
+create_policy_resource_policy: false  # (Optional) Whether to create a resource-based policy for the firewall policy for cross-account sharing. Default: false
+
+delete_protection: true  # (Optional) Protect the firewall against accidental deletion via console or API. Default: true
+
+firewall_policy_change_protection: true  # (Optional) Protect against changes to the associated firewall policy. Default: true
+
+subnet_change_protection: true  # (Optional) Protect against changes to the firewall subnet associations. Default: true
+
+firewall_policy_arn: ""  # (Optional) ARN of an existing firewall policy. Only used when create_policy is false. Default: ""
+
+vpc_id: ""  # (Required) The ID of the VPC where the Network Firewall will be deployed.
+
+subnet_ids:  # (Required) List of subnet IDs for firewall endpoint placement. One per Availability Zone is recommended.
+  - ""
+
+logging:  # (Optional) Logging configuration for the Network Firewall.
+  enabled: false  # (Optional) Whether to enable logging to CloudWatch Logs. Default: false
+  additional_configuration: {}  # (Optional) Extra logging destination config (S3, Kinesis Firehose, additional CloudWatch). Default: {}
+  # Example additional_configuration for S3:
+  # additional_configuration:
+  #   log_destination:
+  #     bucketName: "my-nfw-logs-bucket"
+  #     prefix: "nfw/"
+  #   log_destination_type: "S3"   # Valid values: "CloudWatchLogs" | "S3" | "KinesisDataFirehose"
+  #   log_type: "FLOW"             # Valid values: "ALERT" | "FLOW" | "TLS"
+
+policy:  # (Optional) Firewall policy configuration.
+  resource:  # (Optional) Resource-based policy for cross-account access.
+    policy_actions: []  # (Optional) IAM actions to allow in the resource policy. Default: []
+    policy_principals: []  # (Optional) IAM principal ARNs granted access via the resource policy. Default: []
+  stateful:  # (Optional) Stateful inspection engine configuration.
+    default_actions: []  # (Optional) Default stateful actions when no rule matches.
+    # Valid values: "aws:drop_strict" | "aws:drop_established" | "aws:alert_strict" | "aws:alert_established"
+    engine_options: {}  # (Optional) Stateful engine options (e.g., rule_order). Default: {}
+    # Example:
+    # engine_options:
+    #   rule_order: "STRICT_ORDER"  # Valid values: "DEFAULT_ACTION_ORDER" | "STRICT_ORDER"
+  stateless:  # (Optional) Stateless inspection configuration.
+    custom_action: {}  # (Optional) Custom stateless action definitions. Default: {}
+    default_actions:  # (Optional) Default stateless actions for non-fragmented packets. Default: ["aws:pass"]
+      - "aws:pass"  # Valid values: "aws:pass" | "aws:drop" | "aws:forward_to_sfe"
+    fragment_default_actions:  # (Optional) Default stateless actions for fragmented packets. Default: ["aws:drop"]
+      - "aws:drop"  # Valid values: "aws:pass" | "aws:drop" | "aws:forward_to_sfe"
+
+stateful_rule_groups: {}  # (Optional) Map of stateful rule group configurations keyed by a logical name. Default: {}
+# Example:
+# stateful_rule_groups:
+#   block_domains:
+#     rule_group:
+#       rules_source:
+#         rules_source_list:
+#           generated_rules_type: "DENYLIST"
+#           target_types: ["HTTP_HOST", "TLS_SNI"]
+#           targets: ["badsite.example.com"]
+
+stateless_rule_groups: {}  # (Optional) Map of stateless rule group configurations keyed by a logical name. Default: {}
+# Example:
+# stateless_rule_groups:
+#   allow_ssh:
+#     priority: 100
+#     rule_group:
+#       rules_source:
+#         stateless_rules_and_custom_actions:
+#           stateless_rule:
+#             - priority: 1
+#               rule_definition:
+#                 actions: ["aws:pass"]
+#                 match_attributes:
+#                   protocols: [6]
+#                   destination_port:
+#                     - from_port: 22
+#                       to_port: 22
