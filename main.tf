@@ -26,6 +26,8 @@ locals {
   logging_config = coalescelist(concat(local.default_logging_config, local.extra_logging_config))
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_cloudwatch_log_group" "logs" {
   count             = var.logging.enabled ? 1 : 0
   name              = "nfw-${local.system_name}-logs"
@@ -35,7 +37,7 @@ resource "aws_cloudwatch_log_group" "logs" {
 
 module "nfw" {
   source                                   = "terraform-aws-modules/network-firewall/aws"
-  version                                  = "~> 1.0"
+  version                                  = "~> 2.0"
   name                                     = "nfw-${local.system_name}"
   create                                   = var.create
   create_logging_configuration             = var.logging.enabled
