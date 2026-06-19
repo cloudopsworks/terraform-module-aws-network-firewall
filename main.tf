@@ -14,7 +14,7 @@ locals {
   default_logging_config = var.logging.enabled ? [
     {
       log_destination = {
-        logGroup = aws_cloudwatch_log_group.logs[0].name
+        logGroup = "nfw-${local.system_name}-logs"
       }
       log_destination_type = "CloudWatchLogs"
       log_type             = "ALERT"
