@@ -1,4 +1,4 @@
-name: Terraform Network Firewall Module
+name: Terraform AWS Network Firewall Module
 #logo: logo/logo.jpg
 
 license: "APACHE2"
@@ -6,32 +6,268 @@ license: "APACHE2"
 copyrights:
   - name: "Cloud Ops Works LLC"
     url: "https://cloudops.works"
-    year: "2024"
+    year: "2021"
+
+badges:
+  - name: Latest Release
+    image: https://img.shields.io/github/release/cloudopsworks/terraform-module-aws-network-firewall.svg?style=for-the-badge
+    url: https://github.com/cloudopsworks/terraform-module-aws-network-firewall/releases/latest
+  - name: Last Updated
+    image: https://img.shields.io/github/last-commit/cloudopsworks/terraform-module-aws-network-firewall.svg?style=for-the-badge
+    url: https://github.com/cloudopsworks/terraform-module-aws-network-firewall/commits
 
 github_repo: cloudopsworks/terraform-module-aws-network-firewall
 
 description: |-
-  This Terraform module sets up an AWS Network Firewall within a VPC. It includes the following features:
+  This Terraform module deploys an AWS Network Firewall within a VPC. It includes the following features:
   - Creation of CloudWatch Log Groups for logging firewall events.
-  - Configuration of logging destinations and types based on user input.
-  - Creation and management of KMS keys for encryption.
+  - Configuration of logging destinations and types (CloudWatch Logs, S3, Kinesis Firehose).
+  - Creation and management of KMS keys for encryption of firewall data and policy.
   - Support for both stateful and stateless firewall rule groups.
   - Flexible configuration options for firewall policies, including default actions, custom actions, and rule group references.
   - Protection options for firewall policy changes and subnet changes.
   - Tagging support for all resources created by the module.
 
-# Introduction to the project
-#introduction: |-
-#  This is an introduction.
+introduction: |-
+  AWS Network Firewall is a managed, stateful network firewall and intrusion detection and prevention service for Amazon VPCs.
+  This module wraps the [terraform-aws-modules/network-firewall/aws](https://registry.terraform.io/modules/terraform-aws-modules/network-firewall/aws/latest)
+  community module and adds CloudOps Works conventions including:
 
-# How to use this project
-#usage: |-
+  - **KMS encryption** — all firewall data and policy are encrypted with a customer-managed KMS key created and managed by this module.
+  - **Structured logging** — optional CloudWatch Log Group is created automatically when logging is enabled.
+  - **Stateful and stateless rule groups** — iterable map inputs for flexible rule group management.
+  - **Terragrunt-first design** — scaffolded `inputs.yaml` keeps per-deployment values separate from the module source.
 
-# Example usage
-#examples: |-
+  ### Architecture
 
-# How to get started quickly
-#quickstart: |-
+  The module creates the following AWS resources:
+
+  | Resource | Description |
+  |---|---|
+  | `aws_networkfirewall_firewall` | The Network Firewall endpoint(s) in the specified subnets |
+  | `aws_networkfirewall_firewall_policy` | Managed policy referencing stateful and stateless rule groups |
+  | `aws_networkfirewall_rule_group` | One or more stateful and/or stateless rule groups |
+  | `aws_cloudwatch_log_group` | Log group for ALERT and/or FLOW logs (when logging is enabled) |
+  | `aws_kms_key` + `aws_kms_alias` | Customer-managed KMS key for firewall and policy encryption |
+
+usage: |-
+  ### Scaffolding a new deployment with Terragrunt
+
+  Use Terragrunt's built-in `scaffold` command to bootstrap a new Network Firewall deployment directory.
+  The scaffold command reads `.boilerplate/boilerplate.yml` from the module source and generates
+  `terragrunt.hcl`, `inputs.yaml`, and `local-tags.json` in the target directory.
+
+  ```sh
+  # 1. Create and enter the target deployment directory
+  mkdir -p production/us-east-1/spoke001/network-firewall
+  cd production/us-east-1/spoke001/network-firewall
+
+  # 2. Scaffold the module (do NOT use --working-dir)
+  terragrunt scaffold github.com/cloudopsworks/terraform-module-aws-network-firewall
+
+  # 3. Edit inputs.yaml with deployment-specific values
+  vi inputs.yaml
+
+  # 4. Apply
+  terragrunt apply
+  ```
+
+  ### Generated `inputs.yaml`
+
+  After scaffolding, edit `inputs.yaml` to provide deployment-specific values.
+  All keys are pre-populated with defaults and inline comments:
+
+  ```yaml
+  # Module configuration
+  # AWS Network Firewall module inputs.
+
+  create: true  # (Optional) Whether to create the Network Firewall and associated resources. Default: true
+
+  create_policy: true  # (Optional) Whether to create a new managed firewall policy. Default: true
+
+  create_policy_resource_policy: false  # (Optional) Create a resource-based policy for cross-account sharing. Default: false
+
+  delete_protection: true  # (Optional) Protect firewall against accidental deletion. Default: true
+
+  firewall_policy_change_protection: true  # (Optional) Protect against firewall policy changes. Default: true
+
+  subnet_change_protection: true  # (Optional) Protect against subnet association changes. Default: true
+
+  firewall_policy_arn: ""  # (Optional) ARN of an existing firewall policy. Used when create_policy is false.
+
+  vpc_id: "vpc-0123456789abcdef0"  # (Required) VPC ID where the firewall will be deployed.
+
+  subnet_ids:  # (Required) Subnet IDs for firewall endpoint placement (one per AZ recommended).
+    - "subnet-0123456789abcdef0"
+    - "subnet-0123456789abcdef1"
+
+  logging:  # (Optional) Logging configuration.
+    enabled: true  # (Optional) Enable CloudWatch Logs for firewall events. Default: false
+    additional_configuration: {}  # (Optional) Extra log destinations (S3, Kinesis Firehose). Default: {}
+
+  policy:  # (Optional) Firewall policy configuration.
+    resource:
+      policy_actions: []  # (Optional) IAM actions for the resource policy. Default: []
+      policy_principals: []  # (Optional) IAM principals for the resource policy. Default: []
+    stateful:
+      default_actions: []  # (Optional) Default stateful actions. Default: []
+      engine_options: {}  # (Optional) Stateful engine options (e.g., rule_order). Default: {}
+    stateless:
+      custom_action: {}  # (Optional) Custom stateless actions. Default: {}
+      default_actions:  # (Optional) Default stateless actions. Default: ["aws:pass"]
+        - "aws:pass"
+      fragment_default_actions:  # (Optional) Default stateless fragment actions. Default: ["aws:drop"]
+        - "aws:drop"
+
+  stateful_rule_groups: {}  # (Optional) Map of stateful rule group configurations. Default: {}
+
+  stateless_rule_groups: {}  # (Optional) Map of stateless rule group configurations. Default: {}
+  ```
+
+  ### Generated `terragrunt.hcl`
+
+  The scaffold generates a `terragrunt.hcl` that loads `inputs.yaml` as `local.local_vars`
+  and wires each variable into the `inputs` block:
+
+  ```hcl
+  locals {
+    local_vars  = yamldecode(file("./inputs.yaml"))
+    spoke_vars  = yamldecode(file(find_in_parent_folders("spoke-inputs.yaml")))
+    region_vars = yamldecode(file(find_in_parent_folders("region-inputs.yaml")))
+    env_vars    = yamldecode(file(find_in_parent_folders("env-inputs.yaml")))
+    global_vars = yamldecode(file(find_in_parent_folders("global-inputs.yaml")))
+
+    local_tags  = jsondecode(file("./local-tags.json"))
+    spoke_tags  = jsondecode(file(find_in_parent_folders("spoke-tags.json")))
+    region_tags = jsondecode(file(find_in_parent_folders("region-tags.json")))
+    env_tags    = jsondecode(file(find_in_parent_folders("env-tags.json")))
+    global_tags = jsondecode(file(find_in_parent_folders("global-tags.json")))
+
+    tags = merge(
+      local.global_tags,
+      local.env_tags,
+      local.region_tags,
+      local.spoke_tags,
+      local.local_tags
+    )
+  }
+
+  include "root" {
+    path = find_in_parent_folders("root.hcl")
+  }
+
+  dependency "vpc" {
+    config_path = "../vpc"
+    mock_outputs_allowed_terraform_commands = ["validate", "destroy"]
+    mock_outputs = {
+      private_subnets = ["subnet-abcdef123456789", "subnet-abcdef123456781"]
+      vpc_id          = "vpc-12345678901234"
+    }
+  }
+
+  terraform {
+    source = "github.com/cloudopsworks/terraform-module-aws-network-firewall"
+  }
+
+  inputs = {
+    is_hub    = false
+    org       = local.env_vars.org
+    spoke_def = local.spoke_vars.spoke
+
+    vpc_id     = dependency.vpc.outputs.vpc_id
+    subnet_ids = dependency.vpc.outputs.private_subnets
+
+    create                            = try(local.local_vars.create, true)
+    create_policy                     = try(local.local_vars.create_policy, true)
+    create_policy_resource_policy     = try(local.local_vars.create_policy_resource_policy, false)
+    delete_protection                 = try(local.local_vars.delete_protection, true)
+    firewall_policy_change_protection = try(local.local_vars.firewall_policy_change_protection, true)
+    subnet_change_protection          = try(local.local_vars.subnet_change_protection, true)
+    firewall_policy_arn               = try(local.local_vars.firewall_policy_arn, "")
+    logging                           = try(local.local_vars.logging, { enabled = false, additional_configuration = {} })
+    policy                            = try(local.local_vars.policy, {})
+    stateful_rule_groups              = try(local.local_vars.stateful_rule_groups, {})
+    stateless_rule_groups             = try(local.local_vars.stateless_rule_groups, {})
+
+    extra_tags = local.tags
+  }
+  ```
+
+examples: |-
+  ### Example: Basic firewall with logging enabled
+
+  ```yaml
+  # inputs.yaml
+  create: true
+  create_policy: true
+  delete_protection: true
+  firewall_policy_change_protection: true
+  subnet_change_protection: true
+  vpc_id: "vpc-0123456789abcdef0"
+  subnet_ids:
+    - "subnet-0a1b2c3d4e5f00001"
+    - "subnet-0a1b2c3d4e5f00002"
+  logging:
+    enabled: true
+    additional_configuration: {}
+  policy:
+    stateless:
+      default_actions:
+        - "aws:forward_to_sfe"
+      fragment_default_actions:
+        - "aws:drop"
+  stateful_rule_groups: {}
+  stateless_rule_groups: {}
+  ```
+
+  ### Example: Firewall with stateful domain block list
+
+  ```yaml
+  # inputs.yaml
+  create: true
+  create_policy: true
+  vpc_id: "vpc-0123456789abcdef0"
+  subnet_ids:
+    - "subnet-0a1b2c3d4e5f00001"
+  logging:
+    enabled: true
+  policy:
+    stateful:
+      default_actions: []
+      engine_options:
+        rule_order: "DEFAULT_ACTION_ORDER"
+    stateless:
+      default_actions:
+        - "aws:forward_to_sfe"
+      fragment_default_actions:
+        - "aws:drop"
+  stateful_rule_groups:
+    block_malicious_domains:
+      rule_group:
+        rules_source:
+          rules_source_list:
+            generated_rules_type: "DENYLIST"
+            target_types:
+              - "HTTP_HOST"
+              - "TLS_SNI"
+            targets:
+              - "malware.example.com"
+              - "phishing.example.com"
+  stateless_rule_groups: {}
+  ```
+
+quickstart: |-
+  1. Create the deployment directory and scaffold:
+     ```sh
+     mkdir -p production/us-east-1/spoke001/network-firewall
+     cd production/us-east-1/spoke001/network-firewall
+     terragrunt scaffold github.com/cloudopsworks/terraform-module-aws-network-firewall
+     ```
+  2. Open `inputs.yaml` and set at minimum:
+     - `vpc_id` — the target VPC ID
+     - `subnet_ids` — one or more subnet IDs (one per AZ recommended)
+  3. Run `terragrunt plan` to review the changes.
+  4. Run `terragrunt apply` to deploy.
 
 include:
   - "docs/targets.md"
