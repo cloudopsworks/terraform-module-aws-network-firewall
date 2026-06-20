@@ -17,7 +17,7 @@
 |------|--------|---------|
 | <a name="module_network_firewall_rule_group_stateful"></a> [network\_firewall\_rule\_group\_stateful](#module\_network\_firewall\_rule\_group\_stateful) | terraform-aws-modules/network-firewall/aws//modules/rule-group | ~> 1.0 |
 | <a name="module_network_firewall_rule_group_stateless"></a> [network\_firewall\_rule\_group\_stateless](#module\_network\_firewall\_rule\_group\_stateless) | terraform-aws-modules/network-firewall/aws//modules/rule-group | ~> 1.0 |
-| <a name="module_nfw"></a> [nfw](#module\_nfw) | terraform-aws-modules/network-firewall/aws | ~> 2.0 |
+| <a name="module_nfw"></a> [nfw](#module\_nfw) | terraform-aws-modules/network-firewall/aws | ~> 1.0 |
 | <a name="module_tags"></a> [tags](#module\_tags) | cloudopsworks/tags/local | 1.0.9 |
 
 ## Resources
